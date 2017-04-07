@@ -6,6 +6,6 @@ package com.example.administrator.testdagger2mvp.api;
  */
 
 public class Constants {
-    public static String BASEURL = "http://op.juhe.cn/onebox/";
-    public static String APIKEY = "19d0a7111f4b61d4124f148dfd5a3a7f";
+    public static String BASEURL = "http://api.jisuapi.com/";
+    public static String APIKEY = "d8b61d2f972f96ee";
 }

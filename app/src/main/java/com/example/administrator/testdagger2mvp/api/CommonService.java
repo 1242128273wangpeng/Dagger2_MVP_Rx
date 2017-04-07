@@ -13,10 +13,44 @@ import rx.Observable;
  * contact with jess.yan.effort@gmail.com
  */
 public interface CommonService {
+    // 获取新闻频道
 
-    @GET("news/words")
-    Observable<RootsData> getNews(@Query("key") String apiKey);
+    /**
+     * 请求示例：
+     * http://api.jisuapi.com/news/channel?appkey=yourappkey
+     * {
+     * "status": "0",
+     * "msg": "ok",
+     * "result": [
+     * "头条",
+     * "新闻",
+     * "财经",
+     * "体育",
+     * "娱乐",
+     * "军事",
+     * "教育",
+     * "科技",
+     * "NBA",
+     * "股票",
+     * "星座",
+     * "女性",
+     * "健康",
+     * "育儿"
+     * ]
+     * }
+     *
+     * @param apiKey
+     * @return
+     */
+    @GET("news/channel")
+    Observable<RootsData> getNews(@Query("appkey") String apiKey);
 
-    @GET("news/query")
-    Observable<NewsData> getDetails(@Query("key") String apiKey, @Query("q") String keyword);
+    /**
+     * 请求示例：
+     * http://api.jisuapi.com/news/get?channel=头条&start=0&num=10&appkey=yourappkey
+     *
+     * @return
+     */
+    @GET("news/get")
+    Observable<NewsData> getDetails(@Query("appkey") String apiKey, @Query("channel") String channel, @Query("start") int start, @Query("num") int num);
 }

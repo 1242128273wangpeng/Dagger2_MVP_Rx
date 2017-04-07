@@ -35,7 +35,7 @@ public class ListPresenter extends BasePresenter<ListContract.Model, ListContrac
     }
 
     public void requestUsers(final boolean pullToRefresh) {
-        mModel.getNews(Constants.APIKEY).subscribeOn(Schedulers.io()).doOnSubscribe(new Action0() {
+        mModel.getModelNews(Constants.APIKEY).subscribeOn(Schedulers.io()).doOnSubscribe(new Action0() {
             @Override
             public void call() {
                 if (pullToRefresh)
@@ -53,15 +53,17 @@ public class ListPresenter extends BasePresenter<ListContract.Model, ListContrac
             }
         }).subscribeOn(AndroidSchedulers.mainThread()).observeOn(AndroidSchedulers.mainThread()).subscribe(new Action1<List<NewsBean>>() {
             @Override
-            public void call(List<NewsBean> newsBeanLists) {
-                if (pullToRefresh) mNewsBean.clear();//如果是上拉刷新则清空列表
-                mNewsBean.addAll(newsBeanLists);
+            public void call(List<NewsBean> lists) {
+                if (pullToRefresh) {
+                    mNewsBean.clear();
+                }
+                mNewsBean.addAll(lists);
                 mAdapter.notifyDataSetChanged();//通知更新数据
             }
         }, new Action1<Throwable>() {
             @Override
             public void call(Throwable throwable) {
-                System.out.println(throwable);
+                System.out.println(throwable.getMessage());
             }
         });
     }

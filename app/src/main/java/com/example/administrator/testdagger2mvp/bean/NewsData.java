@@ -9,9 +9,43 @@ import java.util.List;
  */
 public class NewsData extends BaseData {
     @SerializedName("result")
-    List<NewsBean> listbeans;
+    private Result result;
 
-    public List<NewsBean> getListbeans() {
-        return listbeans;
+    public Result getResult() {
+        return result;
+    }
+
+    public class Result {
+        @SerializedName("channel")
+        private String channel;
+        @SerializedName("num")
+        private String num;
+        @SerializedName("list")
+        private List<NewsBean> newsBeanList;
+
+        public void setChannel(String channel) {
+            this.channel = channel;
+        }
+
+        public String getChannel() {
+            return this.channel;
+        }
+
+        public void setNum(String num) {
+            this.num = num;
+        }
+
+        public String getNum() {
+            return this.num;
+        }
+
+        public void setList(List<NewsBean> list) {
+            this.newsBeanList = list;
+        }
+
+        public List<NewsBean> getNewsBeanList() {
+            return this.newsBeanList;
+        }
+
     }
 }

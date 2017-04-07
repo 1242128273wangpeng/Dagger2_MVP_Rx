@@ -10,6 +10,7 @@ import com.example.administrator.testdagger2mvp.api.ServiceManager;
 import com.example.administrator.testdagger2mvp.base.BaseModel;
 import com.example.administrator.testdagger2mvp.bean.NewsBean;
 import com.example.administrator.testdagger2mvp.bean.RootsData;
+import com.example.administrator.testdagger2mvp.utils.BeanUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,60 +36,119 @@ public class NewsModel extends BaseModel<ServiceManager> implements ListContract
 
 
     @Override
-    public Observable<List<NewsBean>> getNews(String ApiKey) {
-        return mCommonService.getNews(ApiKey).map(new Func1<RootsData, List<NewsBean>>() {
-            @Override
-            public List<NewsBean> call(RootsData rootsData) {
-                final List<NewsBean> dataLists = new ArrayList<>();
-                List<String> resultString = rootsData.getResultString();
-                for (String s : resultString) {
-                    mCommonService.getDetails(Constants.APIKEY, s)
-                            .observeOn(Schedulers.immediate())
-                            .subscribeOn(Schedulers.immediate())
-                            .unsubscribeOn(Schedulers.immediate())
-                            .filter(new Func1<NewsData, Boolean>() {
-                                @Override
-                                public Boolean call(NewsData newsData) {
-                                    for (NewsBean newBean : newsData.getListbeans()) {
-                                        System.out.println("Thread ID:"+Thread.currentThread().getId());
-                                        return newBean.allNotNull();
-                                    }
-                                    return false;
-                                }
-                            })
-                            .subscribe(new Action1<NewsData>() {
-                                @Override
-                                public void call(NewsData newsData) {
-                                    NewsBean bean = newsData.getListbeans().get(0);
-                                    dataLists.add(bean);
-                                }
-                            });
-                }
-                return dataLists;
-            }
+    public Observable<List<NewsBean>> getModelNews(String ApiKey) {
+        return mCommonService.getNews(ApiKey)
+                .flatMap(new Func1<RootsData, Observable<String>>() {
+                    @Override
+                    public Observable<String> call(RootsData rootsData) {
+                        return Observable.from(rootsData.getResultString());
+                    }
+                })
+                .flatMap(new Func1<String, Observable<NewsData>>() {
+                    @Override
+                    public Observable<NewsData> call(String s) {
+                        return mCommonService.getDetails(Constants.APIKEY, s, 0, USERS_PER_PAGE);
+                    }
+                })
+                .flatMap(new Func1<NewsData, Observable<NewsBean>>() {
+                    @Override
+                    public Observable<NewsBean> call(NewsData newsData) {
+                        return Observable.from(newsData.getResult().getNewsBeanList());
+                    }
+                }).filter(new Func1<NewsBean, Boolean>() {
+                    @Override
+                    public Boolean call(NewsBean newsBean) {
+                        return BeanUtils.allNotNull(newsBean);
+                    }
+                })
+                .toList();
+
+
+        /**
+         * mCommonService
+         .getNews(ApiKey)
+         .flatMap(new Func1<RootsData, Observable<String>>() {
+        @Override public Observable<String> call(RootsData rootsData) {
+        return Observable.from(rootsData.getResultString());
+        }
+        })
+         .take(2)
+         .compose(new Observable.Transformer<String, List<NewsBean>>() {
+        @Override public Observable<List<NewsBean>> call(Observable<String> stringObservable) {
+        return stringObservable
+        .flatMap(new Func1<String, Observable<NewsData>>() {
+        @Override public Observable<NewsData> call(String s) {
+        return mCommonService.getDetails(Constants.APIKEY, s);
+        }
+        })
+        .flatMap(new Func1<NewsData, Observable<NewsBean>>() {
+        @Override public Observable<NewsBean> call(NewsData newsData) {
+        return Observable.from(newsData.getListbeans());
+        }
+        })
+        .filter(new Func1<NewsBean, Boolean>() {
+        @Override public Boolean call(NewsBean newsData) {
+        return newsData.allNotNull();
+        }
+        })
+        .toList();
+        }
         });
+         */
 
 
-//                map(new Func1<RootsData, List<String>>() {
+//                .flatMap(new Func1<String, Observable<NewsData>>() {
 //                    @Override
-//                    public List<String> call(RootsData rootsData) {
-//                        return rootsData.getResultString() ;
+//                    public Observable<NewsData> call(String s) {
+//                        return mCommonService.getDetails(Constants.APIKEY, s);
 //                    }
-//                }).map(new Func1<List<String>, List<NewsBean>>() {
+//                })
+//                .flatMap(new Func1<NewsData, Observable<NewsBean>>() {
+//                    @Override
+//                    public Observable<NewsBean> call(NewsData newsData) {
+//                        return Observable.from(newsData.getListbeans());
+//                    }
+//                })
+//                .filter(new Func1<NewsBean, Boolean>() {
+//                    @Override
+//                    public Boolean call(NewsBean newsData) {
+//                        return newsData.allNotNull();
+//                    }
+//                })
+
+
+//        return mCommonService.getNews(ApiKey).map(new Func1<RootsData, List<NewsBean>>() {
 //            @Override
-//            public List<NewsBean> call(List<String> strings) {
-//                final List<NewsBean> newsLists = new ArrayList<>();
-//                for (int i = 0; i < strings.size(); i++) {
-//                    mCommonService.getDetails(Constants.APIKEY,strings.get(i)).map(new Func1<NewsData,  List<NewsBean>>() {
-//                        @Override
-//                        public List<NewsBean> call(NewsData newsData) {
-//                            // 过滤出每个字段都有的Bean
-//                            return newsData.getListbeans();
-//                        }
-//                    });
+//            public List<NewsBean> call(RootsData rootsData) {
+//                final List<NewsBean> dataLists = new ArrayList<>();
+//                List<String> resultString = rootsData.getResultString();
+//                for (String s : resultString) {
+//                    mCommonService.getDetails(Constants.APIKEY, s)
+//                            .observeOn(Schedulers.immediate())
+//                            .subscribeOn(Schedulers.immediate())
+//                            .unsubscribeOn(Schedulers.immediate())
+//                            .filter(new Func1<NewsData, Boolean>() {
+//                                @Override
+//                                public Boolean call(NewsData newsData) {
+//                                    for (NewsBean newBean : newsData.getListbeans()) {
+//                                        System.out.println("Thread ID:"+Thread.currentThread().getId());
+//                                        return newBean.allNotNull();
+//                                    }
+//                                    return false;
+//                                }
+//                            })
+//                            .subscribe(new Action1<NewsData>() {
+//                                @Override
+//                                public void call(NewsData newsData) {
+//                                    NewsBean bean = newsData.getListbeans().get(0);
+//                                    dataLists.add(bean);
+//                                }
+//                            });
 //                }
-//                return  newsLists;
+//                return dataLists;
 //            }
 //        });
+
+
     }
 }
